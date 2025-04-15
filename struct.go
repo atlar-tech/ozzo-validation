@@ -47,16 +47,16 @@ func (e ErrFieldNotFound) Error() string {
 // should be specified as a pointer to the field. A field can be associated with multiple rules.
 // For example,
 //
-//    value := struct {
-//        Name  string
-//        Value string
-//    }{"name", "demo"}
-//    err := validation.ValidateStruct(&value,
-//        validation.Field(&a.Name, validation.Required),
-//        validation.Field(&a.Value, validation.Required, validation.Length(5, 10)),
-//    )
-//    fmt.Println(err)
-//    // Value: the length must be between 5 and 10.
+//	value := struct {
+//	    Name  string
+//	    Value string
+//	}{"name", "demo"}
+//	err := validation.ValidateStruct(&value,
+//	    validation.Field(&a.Name, validation.Required),
+//	    validation.Field(&a.Value, validation.Required, validation.Length(5, 10)),
+//	)
+//	fmt.Println(err)
+//	// Value: the length must be between 5 and 10.
 //
 // An error will be returned if validation fails.
 func ValidateStruct(structPtr interface{}, fields ...*FieldRules) error {
@@ -86,8 +86,8 @@ func ValidateStructWithContext(ctx context.Context, structPtr interface{}, field
 		if fv.Kind() != reflect.Ptr {
 			return NewInternalError(ErrFieldPointer(i))
 		}
-		ft := findStructField(value, fv)
-		if ft == nil {
+		ft, ok := findStructField(value, fv)
+		if !ok {
 			return NewInternalError(ErrFieldNotFound(i))
 		}
 		var err error
@@ -131,7 +131,7 @@ func Field(fieldPtr interface{}, rules ...Rule) *FieldRules {
 // findStructField looks for a field in the given struct.
 // The field being looked for should be a pointer to the actual struct field.
 // If found, the field info will be returned. Otherwise, nil will be returned.
-func findStructField(structValue reflect.Value, fieldValue reflect.Value) *reflect.StructField {
+func findStructField(structValue reflect.Value, fieldValue reflect.Value) (reflect.StructField, bool) {
 	ptr := fieldValue.Pointer()
 	for i := structValue.NumField() - 1; i >= 0; i-- {
 		sf := structValue.Type().Field(i)
@@ -139,7 +139,7 @@ func findStructField(structValue reflect.Value, fieldValue reflect.Value) *refle
 			// do additional type comparison because it's possible that the address of
 			// an embedded struct is the same as the first field of the embedded struct
 			if sf.Type == fieldValue.Elem().Type() {
-				return &sf
+				return sf, true
 			}
 		}
 		if sf.Anonymous {
@@ -149,17 +149,17 @@ func findStructField(structValue reflect.Value, fieldValue reflect.Value) *refle
 				fi = fi.Elem()
 			}
 			if fi.Kind() == reflect.Struct {
-				if f := findStructField(fi, fieldValue); f != nil {
-					return f
+				if f, ok := findStructField(fi, fieldValue); ok {
+					return f, true
 				}
 			}
 		}
 	}
-	return nil
+	return reflect.StructField{}, false
 }
 
 // getErrorFieldName returns the name that should be used to represent the validation error of a struct field.
-func getErrorFieldName(f *reflect.StructField) string {
+func getErrorFieldName(f reflect.StructField) string {
 	if tag := f.Tag.Get(ErrorTag); tag != "" && tag != "-" {
 		if cps := strings.SplitN(tag, ",", 2); cps[0] != "" {
 			return cps[0]

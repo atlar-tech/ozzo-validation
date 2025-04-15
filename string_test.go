@@ -116,7 +116,7 @@ func TestGetErrorFieldName(t *testing.T) {
 	a := reflect.TypeOf(A{})
 	for _, test := range tests {
 		field, _ := a.FieldByName(test.field)
-		assert.Equal(t, test.name, getErrorFieldName(&field), test.tag)
+		assert.Equal(t, test.name, getErrorFieldName(field), test.tag)
 	}
 }
 
