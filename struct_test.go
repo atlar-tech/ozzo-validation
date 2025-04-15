@@ -35,32 +35,37 @@ type Struct3 struct {
 	S1 string
 }
 
+func foundStructField(v reflect.Value, field reflect.Value) bool {
+	_, ok := findStructField(v, field)
+	return ok
+}
+
 func TestFindStructField(t *testing.T) {
 	var s1 Struct1
 	v1 := reflect.ValueOf(&s1).Elem()
-	assert.NotNil(t, findStructField(v1, reflect.ValueOf(&s1.Field1)))
-	assert.Nil(t, findStructField(v1, reflect.ValueOf(s1.Field2)))
-	assert.NotNil(t, findStructField(v1, reflect.ValueOf(&s1.Field2)))
-	assert.Nil(t, findStructField(v1, reflect.ValueOf(s1.Field3)))
-	assert.NotNil(t, findStructField(v1, reflect.ValueOf(&s1.Field3)))
-	assert.NotNil(t, findStructField(v1, reflect.ValueOf(&s1.Field4)))
-	assert.NotNil(t, findStructField(v1, reflect.ValueOf(&s1.field5)))
-	assert.NotNil(t, findStructField(v1, reflect.ValueOf(&s1.Struct2)))
-	assert.Nil(t, findStructField(v1, reflect.ValueOf(s1.S1)))
-	assert.NotNil(t, findStructField(v1, reflect.ValueOf(&s1.S1)))
-	assert.NotNil(t, findStructField(v1, reflect.ValueOf(&s1.Field21)))
-	assert.NotNil(t, findStructField(v1, reflect.ValueOf(&s1.Field22)))
-	assert.NotNil(t, findStructField(v1, reflect.ValueOf(&s1.Struct2.Field22)))
+	assert.True(t, foundStructField(v1, reflect.ValueOf(&s1.Field1)))
+	assert.False(t, foundStructField(v1, reflect.ValueOf(s1.Field2)))
+	assert.True(t, foundStructField(v1, reflect.ValueOf(&s1.Field2)))
+	assert.False(t, foundStructField(v1, reflect.ValueOf(s1.Field3)))
+	assert.True(t, foundStructField(v1, reflect.ValueOf(&s1.Field3)))
+	assert.True(t, foundStructField(v1, reflect.ValueOf(&s1.Field4)))
+	assert.True(t, foundStructField(v1, reflect.ValueOf(&s1.field5)))
+	assert.True(t, foundStructField(v1, reflect.ValueOf(&s1.Struct2)))
+	assert.False(t, foundStructField(v1, reflect.ValueOf(s1.S1)))
+	assert.True(t, foundStructField(v1, reflect.ValueOf(&s1.S1)))
+	assert.True(t, foundStructField(v1, reflect.ValueOf(&s1.Field21)))
+	assert.True(t, foundStructField(v1, reflect.ValueOf(&s1.Field22)))
+	assert.True(t, foundStructField(v1, reflect.ValueOf(&s1.Struct2.Field22)))
 	s2 := reflect.ValueOf(&s1.Struct2).Elem()
-	assert.NotNil(t, findStructField(s2, reflect.ValueOf(&s1.Field21)))
-	assert.NotNil(t, findStructField(s2, reflect.ValueOf(&s1.Struct2.Field21)))
-	assert.NotNil(t, findStructField(s2, reflect.ValueOf(&s1.Struct2.Field22)))
+	assert.True(t, foundStructField(s2, reflect.ValueOf(&s1.Field21)))
+	assert.True(t, foundStructField(s2, reflect.ValueOf(&s1.Struct2.Field21)))
+	assert.True(t, foundStructField(s2, reflect.ValueOf(&s1.Struct2.Field22)))
 	s3 := Struct3{
 		Struct2: &Struct2{},
 	}
 	v3 := reflect.ValueOf(&s3).Elem()
-	assert.NotNil(t, findStructField(v3, reflect.ValueOf(&s3.Struct2)))
-	assert.NotNil(t, findStructField(v3, reflect.ValueOf(&s3.Field21)))
+	assert.True(t, foundStructField(v3, reflect.ValueOf(&s3.Struct2)))
+	assert.True(t, foundStructField(v3, reflect.ValueOf(&s3.Field21)))
 }
 
 func TestValidateStruct(t *testing.T) {
@@ -194,15 +199,15 @@ func Test_getErrorFieldName(t *testing.T) {
 	var s1 Struct1
 	v1 := reflect.ValueOf(&s1).Elem()
 
-	sf1 := findStructField(v1, reflect.ValueOf(&s1.Field1))
-	assert.NotNil(t, sf1)
+	sf1, ok := findStructField(v1, reflect.ValueOf(&s1.Field1))
+	assert.True(t, ok)
 	assert.Equal(t, "Field1", getErrorFieldName(sf1))
 
-	jsonField := findStructField(v1, reflect.ValueOf(&s1.JSONField))
-	assert.NotNil(t, jsonField)
+	jsonField, ok := findStructField(v1, reflect.ValueOf(&s1.JSONField))
+	assert.True(t, ok)
 	assert.Equal(t, "some_json_field", getErrorFieldName(jsonField))
 
-	jsonIgnoredField := findStructField(v1, reflect.ValueOf(&s1.JSONIgnoredField))
-	assert.NotNil(t, jsonIgnoredField)
+	jsonIgnoredField, ok := findStructField(v1, reflect.ValueOf(&s1.JSONIgnoredField))
+	assert.True(t, ok)
 	assert.Equal(t, "JSONIgnoredField", getErrorFieldName(jsonIgnoredField))
 }
