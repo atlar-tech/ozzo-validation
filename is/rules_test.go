@@ -99,3 +99,21 @@ func assertError(t *testing.T, expected string, err error, tag string) {
 		assert.Equal(t, expected, err.Error(), tag)
 	}
 }
+
+func TestIsISO3166_2(t *testing.T) {
+	tests := []struct {
+		inputtedCode string
+		isValid      bool
+	}{
+		{"US-CA", true},
+		{"SE-AB", true},
+		{"DE-BY", true},
+		{"AB-CD", false},
+		{"12-34", false},
+		{"absolutly-not-a-valid-code", false},
+	}
+
+	for _, test := range tests {
+		assert.Equal(t, test.isValid, IsISO3166_2(test.inputtedCode))
+	}
+}

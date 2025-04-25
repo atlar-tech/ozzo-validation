@@ -130,3 +130,42 @@ func TestStringRule_ErrorObject(t *testing.T) {
 	assert.Equal(t, "code", r.err.Code())
 	assert.Equal(t, "abc", r.err.Message())
 }
+
+func TestValidStartsWith(t *testing.T) {
+	tests := []struct {
+		rule  Rule
+		input string
+	}{
+		{StartsWith("US"), "US-CA"},
+		{StartsWith("US"), "US-TX"},
+		{StartsWith("SE"), "SE-AB"},
+		{StartsWith("DE"), "DE-BY"},
+	}
+
+	for _, test := range tests {
+		err := test.rule.Validate(test.input)
+
+		assert.True(t, err == nil)
+	}
+}
+
+func TestInvalidStartsWith(t *testing.T) {
+	tests := []struct {
+		rule        Rule
+		input       string
+		expectedErr string
+	}{
+		{StartsWith("US"), "SE-AB", "must start with US"},
+		{StartsWith("US"), "DE-BY", "must start with US"},
+		{StartsWith("SE"), "US-CA", "must start with SE"},
+		{StartsWith("DE"), "some other string not starting with DE", "must start with DE"},
+		{StartsWith("hello"), "world hello", "must start with hello"},
+	}
+
+	for _, test := range tests {
+		err := test.rule.Validate(test.input)
+
+		assert.NotNil(t, err)
+		assert.Equal(t, test.expectedErr, err.Error())
+	}
+}

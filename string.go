@@ -4,6 +4,10 @@
 
 package validation
 
+import (
+	"strings"
+)
+
 type stringValidator func(string) bool
 
 // StringRule is a rule that checks a string variable using a specified stringValidator.
@@ -61,4 +65,13 @@ func (r StringRule) Validate(value interface{}) error {
 	}
 
 	return r.err
+}
+
+func StartsWith(prefix string) StringRule {
+	return NewStringRuleWithError(
+		func(value string) bool {
+			return strings.HasPrefix(value, prefix)
+		},
+		NewError("validation_is_starts_with", "must start with "+prefix),
+	)
 }

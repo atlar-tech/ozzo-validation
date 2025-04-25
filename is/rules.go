@@ -90,6 +90,8 @@ var (
 	ErrCountryCode2 = validation.NewError("validation_is_country_code_2_letter", "must be a valid two-letter country code")
 	// ErrCountryCode3 is the error that returns in case of an invalid three-letter country code.
 	ErrCountryCode3 = validation.NewError("validation_is_country_code_3_letter", "must be a valid three-letter country code")
+	// ErrCountrySubdivisionCode is the error that returns in case of an invalid ISO3166-2 country subdivision code.
+	ErrCountrySubdivisionCode = validation.NewError("validation_is_country_subdivision_code", "must be a valid ISO3166-2 country subdivision code")
 	// ErrCurrencyCode is the error that returns in case of an invalid currency code.
 	ErrCurrencyCode = validation.NewError("validation_is_currency_code", "must be valid ISO 4217 currency code")
 	// ErrDialString is the error that returns in case of an invalid string.
@@ -203,6 +205,8 @@ var (
 	CountryCode2 = validation.NewStringRuleWithError(govalidator.IsISO3166Alpha2, ErrCountryCode2)
 	// CountryCode3 validates if a string is a valid ISO3166 Alpha 3 country code
 	CountryCode3 = validation.NewStringRuleWithError(govalidator.IsISO3166Alpha3, ErrCountryCode3)
+	// CountrySubdivisionCode validates if a string is a valid ISO3166-2 country subdivision code
+	CountrySubdivisionCode = validation.NewStringRuleWithError(IsISO3166_2, ErrCountrySubdivisionCode)
 	// CurrencyCode validates if a string is a valid IsISO4217 currency code.
 	CurrencyCode = validation.NewStringRuleWithError(govalidator.IsISO4217, ErrCurrencyCode)
 	// DialString validates if a string is a valid dial string that can be passed to Dial()
@@ -280,4 +284,10 @@ func isUTFNumeric(value string) bool {
 		}
 	}
 	return true
+}
+
+func IsISO3166_2(str string) bool {
+	// Checks if the subdivision code is valid
+	_, exists := ISO3166_2_MAP[str]
+	return exists
 }
